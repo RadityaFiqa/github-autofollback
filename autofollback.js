@@ -6,7 +6,7 @@ const octokit = new Octokit({ auth: `token_github` });
 (async () => {
   let lastFollowers = [];
 
-  const job = new CronJob("0 * * * *", function () {
+  const job = new CronJob("0 * * * *",async function () {
     const getFollowers = await octokit.request("GET /user/followers");
     const followers = getFollowers.data;
 
