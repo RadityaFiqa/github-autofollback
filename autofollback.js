@@ -1,25 +1,26 @@
-var CronJob = require('cron').CronJob;
-const { Octokit } = require("@octokit/core");
+const CronJob = require('cron').CronJob;
+const {
+  Octokit
+} = require("@octokit/core");
+const _ = require("lodash")
 
-const octokit = new Octokit({ auth: `token_github` });
+const octokit = new Octokit({
+  auth: `token_github`
+});
 
 (async () => {
   let lastFollowers = [];
 
-  const job = new CronJob("0 * * * *",async function () {
+  const job = new CronJob("0 * * * *", async function () {
     const getFollowers = await octokit.request("GET /user/followers");
     const followers = getFollowers.data;
 
-    if (JSON.stringify(followers) != JSON.stringify(lastFollowers)) {
-      let newFollowers = followers.filter(
-        (val) => !lastFollowers.includes(val)
-      );
-      console.log(newFollowers);
+    if (!_.isEqual(followers, lastFollowers)) {
+      let newFollowers = _.differenceBy(followers, lastFollowers, 'login')
 
       newFollowers.map(async (data) => {
-        const follow = await octokit.request(
-          `PUT /user/following/${data.login}`,
-          {
+        await octokit.request(
+          `PUT /user/following/${data.login}`, {
             username: data.login,
           }
         );
@@ -30,4 +31,3 @@ const octokit = new Octokit({ auth: `token_github` });
   });
   job.start();
 })();
-
